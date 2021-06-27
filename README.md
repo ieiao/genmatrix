@@ -4,6 +4,8 @@ genmatrix是一个使用python实现的单色位图及点阵字体取模工具�
 
 之所以编写该工具，是因为在把玩墨水屏时发现在Linux操作系统中找不到像Windows系统下类似的取模工具，同时[xbm](https://www.fileformat.info/format/xbm/egff.htm#:~:text=XBM%20is%20a%20monochrome%20bitmap%20format%20in%20which,being%20stored%20as%20binary%20information%20in%20a%20file.)图像格式并不能很好的满足一些奇奇怪怪的取模需求，便有了genmatrix。
 
+__目前此工具的字符串取模功能只支持单子节utf-8编码的字符以及三字节utf-8编码的字符，简单来说就是unicode编码中小于等于两字节编码的字符，目前仅对ASCII和中文进行了简单测试。__
+
 运行脚本前确保已经安装了`pillow`库，随后执行`./genmatrix`即可查看使用说明。
 
 以墨水屏demo项目[github](https://hub.fastgit.org/ieiao/hanshow-2in9-epaper)|[gitee](https://gitee.com/ieiao/hanshow-2in9-epaper)为例，该墨水屏取模时的参数为：垂直扫描、大端序、图像水平翻转，执行如下命令便可以得到对应图片的点阵数据了。
@@ -12,7 +14,7 @@ genmatrix是一个使用python实现的单色位图及点阵字体取模工具�
 ./genmatrix.py -O mono -S V -E B -F X ../temp/aaa.bmp
 ```
 
-而执行以下命令可以得到字符串参数的点阵数据了
+而执行以下命令可以得到字符串参数的点阵数据了，__字符串取模采用的是unifont字体，可以通过修改代码支持其他字体__
 
 ```shell
 ./genmatrix.py -O str -F X -S V -E B '中华人民共和国'

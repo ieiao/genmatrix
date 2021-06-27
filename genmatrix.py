@@ -106,7 +106,7 @@ def main():
 
 Example:
 
-    (1) 生成和xbm图片格式一致的像素矩阵 (水平扫描, 小端序, 颜色反转)
+    (1) 生成指定图片的像素矩阵 (水平扫描, 小端序, 颜色反转)
     ./genmatrix -O mono -R xxx.bmp
 
     (2) 生成字符串序列的像素矩阵 (16x16, 垂直扫描, 大端序, 颜色正常)
@@ -162,7 +162,7 @@ Example:
             sys.exit(1)
 
     if len(args) > 0:
-        filename = args[0]
+        arg = args[0]
     else:
         print('缺少目标文件或字符串')
         print(help)
@@ -177,16 +177,26 @@ Example:
     print('颜色反转: ' + color_reverse + '\n')
 
     if operation == 'mono':
-        img = Image.open(filename)
+        img = Image.open(arg)
         matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse)
         show_matrix(matrix)
         img.close()
     else:
-        for s in filename:
-            print(s, end=':')
-            #print(s.encode('unicode_escape'))
-            print(s.encode('utf-8'))
-            img = Image.new("1", (16,16), (1))
+        # 排序，方便目标设备使用二分法查找
+        l = list(arg)
+        l.sort()
+        arg = ''.join(l)
+        for s in arg:
+            c = s.encode('utf-8')
+            print('/* %c */' % s)
+            if c[0] < 128:
+                w = int(char_height)//2
+                print('/* utf-8 code: %02x */' % c[0])
+            else:
+                w = int(char_height)
+                print('/* utf-8 code: %02x%02x%02x */' % (c[0], c[1], c[2]))
+            h = int(char_height)
+            img = Image.new("1", (w,h), (1))
             ttfont = ImageFont.truetype("fonts/unifont-13.0.06.ttf", int(char_height))
             draw = ImageDraw.Draw(img)
             draw.text((0,0), u'%c' % s, (0), font=ttfont)
