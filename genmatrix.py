@@ -182,22 +182,27 @@ Example:
         show_matrix(matrix)
         img.close()
     else:
-        # 排序，方便目标设备使用二分法查找
-        l = list(arg)
+        # 转成unicode编码并排序
+        l = list()
+        for c in arg:
+            l.append(ord(c))
         l.sort()
-        arg = ''.join(l)
+        # 转回字符串
+        c = list()
+        for i in l:
+            print(hex(i) + ', /* ' + chr(i) + ' */')
+            c.append(chr(i))
+        print(c)
+        arg = c
         for s in arg:
-            c = s.encode('utf-8')
-            print('/* %c */' % s)
-            if c[0] < 128:
+            print('/* ' + hex(ord(s)) + ' */')
+            if ord(s) < 128:
                 w = int(char_height)//2
-                print('/* utf-8 code: %02x */' % c[0])
             else:
                 w = int(char_height)
-                print('/* utf-8 code: %02x%02x%02x */' % (c[0], c[1], c[2]))
             h = int(char_height)
             img = Image.new("1", (w,h), (1))
-            ttfont = ImageFont.truetype("fonts/unifont-13.0.06.ttf", int(char_height))
+            ttfont = ImageFont.truetype("fonts/unifont-13.0.06.ttf", h)
             draw = ImageDraw.Draw(img)
             draw.text((0,0), u'%c' % s, (0), font=ttfont)
             matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse)

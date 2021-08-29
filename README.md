@@ -4,7 +4,7 @@ genmatrix是一个使用python实现的单色位图及点阵字体取模工具�
 
 之所以编写该工具，是因为在把玩墨水屏时发现在Linux操作系统中找不到像Windows系统下类似的取模工具，同时[xbm](https://www.fileformat.info/format/xbm/egff.htm#:~:text=XBM%20is%20a%20monochrome%20bitmap%20format%20in%20which,being%20stored%20as%20binary%20information%20in%20a%20file.)图像格式并不能很好的满足一些奇奇怪怪的取模需求，便有了genmatrix。
 
-__目前此工具的字符串取模功能只支持单子节utf-8编码的字符以及三字节utf-8编码的字符，简单来说就是unicode编码中小于等于两字节编码的字符，目前仅对ASCII和中文进行了简单测试。__
+__目前此工具的字符串取模功能是将字符串转为unicode后进行排序，目前仅对ASCII和中文进行了简单测试。__
 
 运行脚本前确保已经安装了`pillow`库，随后执行`./genmatrix`即可查看使用说明。
 
