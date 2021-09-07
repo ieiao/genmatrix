@@ -71,11 +71,16 @@ def mono_genmatrix(image, flip, scan_dir, endian, color_reverse):
                 matrix.append(v)
     return matrix
 
+cnt = 0
 def show_matrix(matrix):
+    global cnt
     i = 0
     for v in matrix:
-        print('0x%02x, ' % v, end='')
+        if i == 0:
+            print('%08x: ' % cnt, end='')
+        print('%02x ' % v, end='')
         i += 1
+        cnt += 1
         if i == 16:
             i = 0
             print()
@@ -198,7 +203,6 @@ Example:
         print(c)
         arg = c
         for s in arg:
-            print('/* ' + hex(ord(s)) + ' */')
             if ord(s) < 128:
                 w = int(char_height)//2
             else:
