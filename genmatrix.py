@@ -178,6 +178,9 @@ Example:
 
     if operation == 'mono':
         img = Image.open(arg)
+        if img.mode != '1':
+            img = img.convert('L')
+            img = img.convert('1')
         matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse)
         show_matrix(matrix)
         img.close()
