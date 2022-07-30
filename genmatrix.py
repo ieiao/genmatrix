@@ -4,7 +4,7 @@ import sys
 import getopt
 from PIL import Image,ImageDraw,ImageFont
 
-def mono_genmatrix(image, flip, scan_dir, endian, color_reverse):
+def mono_genmatrix(image, flip, scan_dir, endian, color_reverse, increase):
     width = image.size[0]
     height = image.size[1]
 
@@ -34,41 +34,77 @@ def mono_genmatrix(image, flip, scan_dir, endian, color_reverse):
     if scan_direction == 'Horizontal':
         if (width%8) != 0:
             unalign = 1
-        for i in range(0, height):
-            for j in range(0, (width//8)+unalign):
-                v = 0x00
-                rs = 8*j
-                re = 8*(j+1)
-                if re > width:
-                    re = width
-                for k in range(rs, re):
-                    if image.getpixel((k, i)) != 0:
-                        if not byte_reverse:
-                            v |= (0x01 << (k%8))
-                        else:
-                            v |= (0x01 << (7-(k%8)))
-                if color_reverse:
-                    v ^= 0xff
-                matrix.append(v)
+        if increase == 'X':
+            for i in range(0, height):
+                for j in range(0, (width//8)+unalign):
+                    v = 0x00
+                    rs = 8*j
+                    re = 8*(j+1)
+                    if re > width:
+                        re = width
+                    for k in range(rs, re):
+                        if image.getpixel((k, i)) != 0:
+                            if not byte_reverse:
+                                v |= (0x01 << (k%8))
+                            else:
+                                v |= (0x01 << (7-(k%8)))
+                    if color_reverse:
+                        v ^= 0xff
+                    matrix.append(v)
+        if increase == 'Y':
+            for i in range(0, (width//8)+unalign):
+                for j in range(0, height):
+                    v = 0x00
+                    rs = 8*i
+                    re = 8*(i+1)
+                    if re > width:
+                        re = width
+                    for k in range(rs, re):
+                        if image.getpixel((k, j)) != 0:
+                            if not byte_reverse:
+                                v |= (0x01 << (k%8))
+                            else:
+                                v |= (0x01 << (7-(k%8)))
+                    if color_reverse:
+                        v ^= 0xff
+                    matrix.append(v)
     elif scan_direction == 'Vertical':
         if (height%8) != 0:
             unalign = 1
-        for i in range(0, width):
-            for j in range(0, (height//8)+unalign):
-                v = 0x00
-                rs = 8*j
-                re = 8*(j+1)
-                if re > height:
-                    re = height
-                for k in range(rs, re):
-                    if image.getpixel((i, k)) != 0:
-                        if not byte_reverse:
-                            v |= (0x01 << k%8)
-                        else:
-                            v |= (0x01 << (7-k%8))
-                if color_reverse:
-                    v ^= 0xff
-                matrix.append(v)
+        if increase == 'X':
+            for i in range(0, (height//8)+unalign):
+                for j in range(0, width):
+                    v = 0x00
+                    rs = 8*i
+                    re = 8*(i+1)
+                    if re > height:
+                        re = height
+                    for k in range(rs, re):
+                        if image.getpixel((j, k)) != 0:
+                            if not byte_reverse:
+                                v |= (0x01 << k%8)
+                            else:
+                                v |= (0x01 << (7-k%8))
+                    if color_reverse:
+                        v ^= 0xff
+                    matrix.append(v)
+        if increase == 'Y':
+            for i in range(0, width):
+                for j in range(0, (height//8)+unalign):
+                    v = 0x00
+                    rs = 8*j
+                    re = 8*(j+1)
+                    if re > height:
+                        re = height
+                    for k in range(rs, re):
+                        if image.getpixel((i, k)) != 0:
+                            if not byte_reverse:
+                                v |= (0x01 << k%8)
+                            else:
+                                v |= (0x01 << (7-k%8))
+                    if color_reverse:
+                        v ^= 0xff
+                    matrix.append(v)
     return matrix
 
 def show_matrix(matrix):
@@ -94,6 +130,9 @@ def main():
     -S | --scan-dir             扫描方向，默认为水平扫描
                                 H:水平扫描, V:垂直扫描
 
+    -I | --increase             扫描递增方向，默认为X
+                                X:水平递增, Y:垂直递增
+
     -E | --endian               字节序列选择，默认为小端序
                                 L: 小端序，低地址像素点位于字节低位 pixel 0 -> bit0
                                 B: 大端序，低地址像素点位于字节高位 pixel 0 -> bit7
@@ -112,8 +151,8 @@ Example:
     (2) 生成字符串序列的像素矩阵 (16x16, 垂直扫描, 大端序, 颜色正常)
     ./genmatrix -O str -S V -E B '中华人民共和国'
 '''
-    short_opts = 'hO:F:S:E:H:R'
-    opts = ['help', 'operation', 'flip' 'scan-dir', 'endian', 'character-height']
+    short_opts = 'hO:F:S:E:H:R:I:'
+    opts = ['help', 'operation', 'flip' 'scan-dir', 'endian', 'character-height', 'increase']
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, opts)
@@ -128,6 +167,7 @@ Example:
     endian          = 'L'
     char_height     = '16'
     color_reverse   = 'false'
+    increase        = 'X'
 
     for opt, arg in opts:
         if opt in ('-h', '--help'):
@@ -148,6 +188,11 @@ Example:
                 print('不支持的参数: ' + opt + ' ' + arg)
                 sys.exit(1)
             scan_dir = arg
+        elif opt in ('-I', '--increase'):
+            if arg not in ('X', 'Y'):
+                print('不支持的参数: ' + opt + ' ' + arg)
+                sys.exit(1)
+            increase = arg
         elif opt in ('-E', '--endian'):
             if arg not in ('L', 'B'):
                 print('不支持的参数: ' + opt + ' ' + arg)
@@ -181,7 +226,7 @@ Example:
         if img.mode != '1':
             img = img.convert('L')
             img = img.convert('1')
-        matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse)
+        matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse, increase)
         show_matrix(matrix)
         img.close()
     else:
@@ -208,8 +253,9 @@ Example:
             ttfont = ImageFont.truetype("fonts/unifont-13.0.06.ttf", h)
             draw = ImageDraw.Draw(img)
             draw.text((0,0), u'%c' % s, (0), font=ttfont)
-            matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse)
+            matrix = mono_genmatrix(img, flip, scan_dir, endian, color_reverse, increase)
             show_matrix(matrix)
+            img.show()
             img.close()
 
 if __name__ == '__main__':
